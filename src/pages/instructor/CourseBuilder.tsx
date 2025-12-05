@@ -1,18 +1,22 @@
-import { Card, CardContent } from '@/components/ui/Card';
+import { useParams } from 'react-router-dom';
+import CourseForm from '@/components/courses/CourseForm';
 
 export default function CourseBuilder() {
+  const { courseId } = useParams<{ courseId: string }>();
+  const isEditing = !!courseId;
+
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-secondary-900">Course Builder</h1>
-        <p className="text-secondary-600 mt-2">Create and edit your course</p>
+        <h1 className="text-3xl font-bold text-secondary-900">
+          {isEditing ? 'Edit Course' : 'Create New Course'}
+        </h1>
+        <p className="text-secondary-600 mt-2">
+          {isEditing ? 'Update your course information' : 'Fill in the details to create your course'}
+        </p>
       </div>
 
-      <Card variant="bordered">
-        <CardContent>
-          <p className="text-secondary-600">Course builder interface will be displayed here.</p>
-        </CardContent>
-      </Card>
+      <CourseForm courseId={courseId} />
     </div>
   );
 }

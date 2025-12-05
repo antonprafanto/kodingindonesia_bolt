@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -6,31 +6,52 @@ import { AlertCircle } from 'lucide-react';
 
 interface ModuleFormProps {
   courseId: string;
-  moduleData?: {
-    id: string;
-    title: string;
-    description: string | null;
-    order_index: number;
-  };
+  moduleId?: string;
   onSuccess: () => void;
   onCancel: () => void;
-  nextOrderIndex: number;
 }
 
 export default function ModuleForm({
   courseId,
-  moduleData,
+  moduleId,
   onSuccess,
-  onCancel,
-  nextOrderIndex
+  onCancel
 }: ModuleFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
-    title: moduleData?.title || '',
-    description: moduleData?.description || '',
-    order_index: moduleData?.order_index ?? nextOrderIndex,
+    title: '',
+    description: '',
   });
+
+  useEffect(() => {
+    if (moduleId) {
+      loadModuleData();
+    }
+  }, [moduleId]);
+
+  const loadModuleData = async () => {
+    if (!moduleId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('modules')
+        .select('*')
+        .eq('id', moduleId)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        setFormData({
+          title: (data as any).title,
+          description: (data as any).description || '',
+        });
+      }
+    } catch (err) {
+      console.error('Error loading module:', err);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,27 +59,36 @@ export default function ModuleForm({
     setLoading(true);
 
     try {
-      if (moduleData) {
-        // @ts-expect-error - Database type inference issue
+      if (moduleId) {
         const { error } = await supabase
           .from('modules')
+          // @ts-expect-error - Database type inference issue
           .update({
             title: formData.title,
             description: formData.description || null,
           })
-          .eq('id', moduleData.id);
+          .eq('id', moduleId);
 
         if (error) throw error;
       } else {
-        // @ts-expect-error - Database type inference issue
+        const { data: maxOrder } = await supabase
+          .from('modules')
+          .select('order_index')
+          .eq('course_id', courseId)
+          .order('order_index', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        const nextOrderIndex = ((maxOrder as any)?.order_index ?? -1) + 1;
+
         const { error } = await supabase
           .from('modules')
           .insert([{
             course_id: courseId,
             title: formData.title,
             description: formData.description || null,
-            order_index: formData.order_index,
-          }]);
+            order_index: nextOrderIndex,
+          }] as any);
 
         if (error) throw error;
       }
@@ -104,7 +134,7 @@ export default function ModuleForm({
 
       <div className="flex gap-3">
         <Button type="submit" isLoading={loading} className="flex-1">
-          {moduleData ? 'Update Module' : 'Add Module'}
+          {moduleId ? 'Update Module' : 'Add Module'}
         </Button>
         <Button type="button" variant="outline" onClick={onCancel} disabled={loading}>
           Cancel

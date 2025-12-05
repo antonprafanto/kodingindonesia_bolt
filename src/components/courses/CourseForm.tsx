@@ -9,7 +9,7 @@ import { AlertCircle } from 'lucide-react';
 
 interface CourseFormProps {
   courseId?: string;
-  onSuccess?: () => void;
+  onSuccess?: (courseId?: string) => void;
 }
 
 interface Category {
@@ -125,19 +125,29 @@ export default function CourseForm({ courseId, onSuccess }: CourseFormProps) {
           .eq('id', courseId);
 
         if (error) throw error;
+
+        if (onSuccess) {
+          onSuccess(courseId);
+        } else {
+          navigate('/instructor/courses');
+        }
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('courses')
           // @ts-expect-error - Database type inference issue
-          .insert([courseData]);
+          .insert([courseData])
+          .select()
+          .single();
 
         if (error) throw error;
-      }
 
-      if (onSuccess) {
-        onSuccess();
-      } else {
-        navigate('/instructor/courses');
+        const newCourseId = (data as any)?.id;
+
+        if (onSuccess) {
+          onSuccess(newCourseId);
+        } else {
+          navigate('/instructor/courses');
+        }
       }
     } catch (err: any) {
       setError(err.message || 'Failed to save course');

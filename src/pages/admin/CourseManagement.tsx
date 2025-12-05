@@ -103,7 +103,6 @@ export default function CourseManagement() {
     try {
       const { error } = await supabase
         .from('courses')
-        // @ts-expect-error - Database type inference issue
         .update({ is_published: !currentStatus })
         .eq('id', courseId);
 

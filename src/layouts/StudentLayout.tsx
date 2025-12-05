@@ -1,7 +1,8 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Home, BookOpen, User, LogOut, Bell } from 'lucide-react';
+import { Home, BookOpen, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import NotificationCenter from '@/components/notifications/NotificationCenter';
 
 export default function StudentLayout() {
   const { profile, signOut } = useAuth();
@@ -48,10 +49,7 @@ export default function StudentLayout() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <button className="p-2 rounded-lg hover:bg-secondary-100 transition-colors relative">
-                <Bell className="h-5 w-5 text-secondary-600" />
-                <span className="absolute top-1 right-1 h-2 w-2 bg-error-500 rounded-full"></span>
-              </button>
+              <NotificationCenter />
               <div className="flex items-center space-x-3">
                 <div className="text-right">
                   <p className="text-sm font-medium text-secondary-900">{profile?.full_name || 'User'}</p>

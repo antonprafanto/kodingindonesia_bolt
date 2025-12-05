@@ -114,11 +114,22 @@ export default function LearningInterface() {
     if (!courseId || !user) return;
 
     try {
+      const { data: modulesData } = await supabase
+        .from('modules')
+        .select('lessons(id)')
+        .eq('course_id', courseId);
+
+      const lessonIds = (modulesData as any[])?.flatMap(m =>
+        m.lessons?.map((l: any) => l.id) || []
+      ) || [];
+
+      if (lessonIds.length === 0) return;
+
       const { data, error } = await supabase
         .from('lesson_progress')
         .select('*')
-        .eq('enrollment_id', courseId)
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .in('lesson_id', lessonIds);
 
       if (error) throw error;
 
@@ -141,23 +152,12 @@ export default function LearningInterface() {
     if (!user || !courseId) return;
 
     try {
-      const { data: enrollment } = await supabase
-        .from('enrollments')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('course_id', courseId)
-        .maybeSingle();
-
-      if (!enrollment) return;
-
       const { error } = await supabase
         .from('lesson_progress')
         .upsert({
-          enrollment_id: (enrollment as any).id,
           lesson_id: lessonId,
           user_id: user.id,
           completed: true,
-          progress_percentage: 100,
           completed_at: new Date().toISOString(),
         } as any);
 
@@ -171,8 +171,38 @@ export default function LearningInterface() {
           progress_percentage: 100,
         },
       }));
+
+      await updateEnrollmentProgress();
     } catch (error) {
       console.error('Error marking lesson complete:', error);
+    }
+  };
+
+  const updateEnrollmentProgress = async () => {
+    if (!user || !courseId) return;
+
+    try {
+      const { data: modulesData } = await supabase
+        .from('modules')
+        .select('lessons(id)')
+        .eq('course_id', courseId);
+
+      const totalLessons = (modulesData as any[])?.reduce((acc, m) =>
+        acc + (m.lessons?.length || 0), 0
+      ) || 0;
+
+      if (totalLessons === 0) return;
+
+      const completedLessons = Object.values(progress).filter(p => p.completed).length;
+      const progressPercentage = Math.round((completedLessons / totalLessons) * 100);
+
+      await supabase
+        .from('enrollments')
+        .update({ progress_percentage: progressPercentage } as any)
+        .eq('user_id', user.id)
+        .eq('course_id', courseId);
+    } catch (error) {
+      console.error('Error updating enrollment progress:', error);
     }
   };
 

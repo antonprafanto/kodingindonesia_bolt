@@ -120,7 +120,6 @@ export default function CourseForm({ courseId, onSuccess }: CourseFormProps) {
       if (courseId) {
         const { error } = await supabase
           .from('courses')
-          // @ts-expect-error - Database type inference issue
           .update(courseData)
           .eq('id', courseId);
 
@@ -134,7 +133,6 @@ export default function CourseForm({ courseId, onSuccess }: CourseFormProps) {
       } else {
         const { data, error } = await supabase
           .from('courses')
-          // @ts-expect-error - Database type inference issue
           .insert([courseData])
           .select()
           .single();

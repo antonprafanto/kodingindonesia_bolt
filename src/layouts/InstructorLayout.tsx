@@ -2,6 +2,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { LayoutDashboard, BookOpen, Users, BarChart, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import NotificationCenter from '@/components/notifications/NotificationCenter';
 
 export default function InstructorLayout() {
   const { profile, signOut } = useAuth();
@@ -49,6 +50,7 @@ export default function InstructorLayout() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              <NotificationCenter />
               <div className="flex items-center space-x-3">
                 <div className="text-right">
                   <p className="text-sm font-medium text-secondary-900">{profile?.full_name || 'Instructor'}</p>

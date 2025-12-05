@@ -62,7 +62,6 @@ export default function ModuleForm({
       if (moduleId) {
         const { error } = await supabase
           .from('modules')
-          // @ts-expect-error - Database type inference issue
           .update({
             title: formData.title,
             description: formData.description || null,

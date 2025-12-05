@@ -76,7 +76,6 @@ export default function LessonForm({
       if (lessonId) {
         const { error } = await supabase
           .from('lessons')
-          // @ts-expect-error - Database type inference issue
           .update({
             title: formData.title,
             content_type: formData.content_type,

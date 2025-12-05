@@ -2,6 +2,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { LayoutDashboard, BookOpen, Users, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import NotificationCenter from '@/components/notifications/NotificationCenter';
 
 export default function AdminLayout() {
   const { profile, signOut } = useAuth();
@@ -49,6 +50,7 @@ export default function AdminLayout() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              <NotificationCenter />
               <div className="flex items-center space-x-3">
                 <div className="text-right">
                   <p className="text-sm font-medium text-secondary-900">{profile?.full_name || 'Admin'}</p>
